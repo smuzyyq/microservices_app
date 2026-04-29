@@ -2,6 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from prometheus_client import Gauge
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from infrastructure.database import create_db_tables, get_db_connection_state, test_database_connection
@@ -9,6 +10,12 @@ from interfaces.routers.order_router import router as order_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("foodrush.order")
+
+order_db_connected_gauge = Gauge(
+    "order_service_database_connected",
+    "Whether the order service can reach its database (1=connected, 0=disconnected).",
+)
+order_db_connected_gauge.set_function(lambda: 1 if test_database_connection() else 0)
 
 
 @asynccontextmanager

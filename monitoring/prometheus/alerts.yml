@@ -10,3 +10,12 @@ groups:
         annotations:
           summary: "Order service is down"
           description: "Prometheus has been unable to scrape order-service metrics for more than 1 minute."
+      - alert: OrderServiceDatabaseDisconnected
+        expr: order_service_database_connected == 0
+        for: 1m
+        labels:
+          severity: warning
+          service: order-service
+        annotations:
+          summary: "Order service database is disconnected"
+          description: "Order service is reachable, but it has been running in degraded mode without database connectivity for more than 1 minute."
