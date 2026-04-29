@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FoodRush</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <div class="brand-lockup">
+          <div class="brand-badge">FR</div>
+          <div>
+            <p class="eyebrow">FoodRush Kazakhstan</p>
+            <h1>Tasty routes, cleaner ops, better delivery flow.</h1>
+          </div>
+        </div>
+
+        <div class="header-side">
+          <div class="health-panel">
+            <p class="health-title">Platform Health</p>
+            <div id="health-statuses" class="health-statuses"></div>
+          </div>
+          <button id="logout-button" class="ghost-button hidden" type="button">Log out</button>
+        </div>
+      </header>
+
+      <section id="auth-view" class="auth-shell panel">
+        <div class="auth-hero">
+          <p class="eyebrow">Modern Delivery Experience</p>
+          <h2>One place for guests, couriers, and operations.</h2>
+          <p class="auth-lead">
+            Browse restaurants from Almaty and Astana, place orders with a cleaner checkout flow,
+            and manage delivery conversations in one dashboard.
+          </p>
+
+          <div class="hero-metrics">
+            <article class="metric-card">
+              <span class="metric-value">10+</span>
+              <span class="metric-label">Kazakhstan-inspired restaurants</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-value">3</span>
+              <span class="metric-label">Role-based workspaces</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-value">24/7</span>
+              <span class="metric-label">Order tracking and delivery chat</span>
+            </article>
+          </div>
+
+          <div class="hero-note">
+            <h3>Public registration is now customer-only.</h3>
+            <p>Courier and admin access is provisioned separately for staff accounts.</p>
+            <div class="demo-logins">
+              <div class="demo-login-card">
+                <strong>Courier Demo</strong>
+                <code>courier@foodrush.kz</code>
+                <code>Courier123!</code>
+              </div>
+              <div class="demo-login-card">
+                <strong>Admin Demo</strong>
+                <code>admin@foodrush.kz</code>
+                <code>Admin123!</code>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-card">
+          <div class="auth-toggle">
+            <button id="show-login" class="toggle-button active" type="button">Login</button>
+            <button id="show-register" class="toggle-button" type="button">Create account</button>
+          </div>
+
+          <form id="login-form" class="auth-form">
+            <label>
+              Email
+              <input name="email" type="email" placeholder="name@example.com" required />
+            </label>
+            <label>
+              Password
+              <input name="password" type="password" placeholder="Enter your password" required />
+            </label>
+            <button class="primary-button" type="submit">Enter workspace</button>
+          </form>
+
+          <form id="register-form" class="auth-form hidden">
+            <label>
+              Full name
+              <input name="full_name" type="text" placeholder="Aigerim Tulegen" required />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" placeholder="name@example.com" required />
+            </label>
+            <label>
+              Password
+              <input name="password" type="password" placeholder="Create a strong password" required />
+            </label>
+            <button class="primary-button" type="submit">Create customer account</button>
+            <p class="form-hint">Courier and admin accounts are created outside the public signup flow.</p>
+          </form>
+
+          <p id="auth-message" class="feedback"></p>
+        </div>
+      </section>
+
+      <section id="app-view" class="workspace hidden">
+        <div class="workspace-top panel">
+          <div class="workspace-copy">
+            <p class="eyebrow">Workspace</p>
+            <h2 id="workspace-title">Welcome back</h2>
+            <p id="workspace-subtitle" class="muted-text">
+              Use the navigation to move between restaurants, delivery flow, and conversations.
+            </p>
+          </div>
+
+          <div class="workspace-meta">
+            <div class="identity-card">
+              <span id="user-role-badge" class="role-badge">customer</span>
+              <strong id="user-name">Guest</strong>
+              <span id="user-email" class="muted-text">name@example.com</span>
+            </div>
+            <div class="quick-summary">
+              <div>
+                <span class="summary-label">Restaurants</span>
+                <strong id="summary-restaurants">0</strong>
+              </div>
+              <div>
+                <span class="summary-label">Orders</span>
+                <strong id="summary-orders">0</strong>
+              </div>
+              <div>
+                <span class="summary-label">Chats</span>
+                <strong id="summary-chats">0</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <nav class="main-nav panel">
+          <button class="nav-button active" data-view="overview" data-roles="customer,courier,admin" type="button">
+            Home
+          </button>
+          <button class="nav-button" data-view="restaurants" data-roles="customer,admin" type="button">
+            Restaurants
+          </button>
+          <button class="nav-button" data-view="menu" data-roles="customer,admin" type="button">
+            Menu
+          </button>
+          <button class="nav-button" data-view="orders" data-roles="customer,admin" type="button">
+            My Orders
+          </button>
+          <button class="nav-button" data-view="delivery" data-roles="courier,admin" type="button">
+            Delivery Board
+          </button>
+          <button class="nav-button" data-view="chat" data-roles="customer,courier,admin" type="button">
+            Chat
+          </button>
+          <button class="nav-button" data-view="profile" data-roles="customer,courier,admin" type="button">
+            Profile
+          </button>
+        </nav>
+
+        <div class="workspace-layout">
+          <div class="main-column">
+            <section id="overview-view" class="panel content-view">
+              <div class="section-head">
+                <div>
+                  <p class="section-label">Overview</p>
+                  <h3>Today's workspace</h3>
+                </div>
+              </div>
+
+              <div id="overview-highlights" class="highlight-grid"></div>
+              <div id="overview-feed" class="overview-feed"></div>
+            </section>
+
+            <section id="restaurants-view" class="panel content-view hidden">
+              <div class="section-head">
+                <div>
+                  <p class="section-label">Explore</p>
+                  <h3>Restaurants</h3>
+                </div>
+                <div class="section-actions">
+                  <input id="restaurant-search" class="inline-input" type="search" placeholder="Search cuisine or restaurant" />
+                  <button id="refresh-restaurants" class="ghost-button" type="button">Refresh</button>
+                </div>
+              </div>
+              <div id="restaurants-grid" class="cards-grid"></div>
+            </section>
+
+            <section id="menu-view" class="panel content-view hidden">
+              <div class="section-head">
+                <div>
+                  <p class="section-label">Restaurant Menu</p>
+                  <h3 id="menu-title">Choose a restaurant</h3>
+                  <p id="menu-subtitle" class="muted-text">Open a restaurant to explore dishes and add them to cart.</p>
+                </div>
+              </div>
+              <div id="menu-grid" class="cards-grid"></div>
+            </section>
+
+            <section id="orders-view" class="panel content-view hidden">
+              <div class="section-head">
+                <div>
+                  <p class="section-label">Customer Orders</p>
+                  <h3>Track and manage</h3>
+                </div>
+                <button id="refresh-orders" class="ghost-button" type="button">Refresh</button>
+              </div>
+              <div id="orders-list" class="stack-list"></div>
+            </section>
+
+            <section id="delivery-view" class="panel content-view hidden">
+              <div class="section-head">
+                <div>
+                  <p class="section-label">Courier Desk</p>
+                  <h3>Dispatch board</h3>
+                  <p class="muted-text">Choose a restaurant and progress delivery statuses from one place.</p>
+                </div>
+                <div class="section-actions">
+                  <select id="delivery-restaurant-select" class="inline-select"></select>
+                  <button id="refresh-deliveries" class="ghost-button" type="button">Refresh Board</button>
+                </div>
+              </div>
+              <div id="delivery-orders-list" class="stack-list"></div>
+            </section>
+
+            <section id="chat-view" class="panel content-view hidden">
+              <div class="section-head">
+                <div>
+                  <p class="section-label">Conversation Center</p>
+                  <h3>Delivery and support chat</h3>
+                </div>
+                <div id="chat-room-meta" class="chat-room-meta muted-text">Select an order to start or continue a conversation.</div>
+              </div>
+
+              <div class="chat-layout">
+                <aside class="chat-sidebar">
+                  <div class="chat-sidebar-head">
+                    <h4>Available conversations</h4>
+                    <p class="muted-text">Customers can open chats from their orders. Couriers can join from delivery cards.</p>
+                  </div>
+                  <div id="chat-order-list" class="chat-order-list"></div>
+                </aside>
+
+                <div class="chat-main">
+                  <div id="chat-messages" class="chat-messages">
+                    <p class="empty-state">Open an order chat to see messages.</p>
+                  </div>
+                  <form id="chat-form" class="chat-form">
+                    <textarea
+                      id="chat-input"
+                      rows="3"
+                      placeholder="Type a message for delivery coordination or support"
+                    ></textarea>
+                    <button class="primary-button" type="submit">Send message</button>
+                  </form>
+                  <p id="chat-message" class="feedback"></p>
+                </div>
+              </div>
+            </section>
+
+            <section id="profile-view" class="panel content-view hidden">
+              <div class="section-head">
+                <div>
+                  <p class="section-label">Profile</p>
+                  <h3>Account and delivery details</h3>
+                </div>
+              </div>
+
+              <div class="profile-layout">
+                <form id="profile-form" class="profile-form">
+                  <label>
+                    Phone number
+                    <input name="phone" type="text" placeholder="+7 777 123 45 67" />
+                  </label>
+                  <label>
+                    Avatar URL
+                    <input name="avatar_url" type="url" placeholder="https://example.com/avatar.jpg" />
+                  </label>
+                  <label>
+                    Default delivery note
+                    <textarea
+                      name="default_address"
+                      rows="4"
+                      placeholder="Apartment, entrance, floor, or extra delivery instructions"
+                    ></textarea>
+                  </label>
+                  <button class="primary-button" type="submit">Save profile</button>
+                </form>
+
+                <div class="address-section">
+                  <div class="section-head compact">
+                    <div>
+                      <p class="section-label">Saved addresses</p>
+                      <h4>Address book</h4>
+                    </div>
+                  </div>
+
+                  <form id="address-form" class="address-form">
+                    <div class="form-grid">
+                      <label>
+                        Label
+                        <input name="label" type="text" placeholder="Home, Office, Parents" required />
+                      </label>
+                      <label>
+                        City
+                        <input name="city" type="text" placeholder="Almaty" required />
+                      </label>
+                      <label>
+                        District
+                        <input name="district" type="text" placeholder="Bostandyk district" />
+                      </label>
+                      <label>
+                        Street
+                        <input name="street" type="text" placeholder="Abay Avenue" required />
+                      </label>
+                      <label>
+                        Building
+                        <input name="building" type="text" placeholder="21A" required />
+                      </label>
+                      <label>
+                        Apartment / Office
+                        <input name="apartment" type="text" placeholder="Apt 57 / Office 408" />
+                      </label>
+                    </div>
+                    <label>
+                      Delivery instructions
+                      <textarea
+                        name="details"
+                        rows="3"
+                        placeholder="Doorphone code, entrance, landmark, call before arrival"
+                      ></textarea>
+                    </label>
+                    <label class="checkbox-line">
+                      <input name="is_default" type="checkbox" />
+                      Make this my default address
+                    </label>
+                    <button class="secondary-button" type="submit">Save address</button>
+                  </form>
+
+                  <div id="addresses-list" class="addresses-list"></div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <aside id="cart-sidebar" class="cart-sidebar panel" data-roles="customer,admin">
+            <div class="section-head compact">
+              <div>
+                <p class="section-label">Checkout</p>
+                <h3>Cart and address</h3>
+              </div>
+            </div>
+
+            <div class="cart-summary">
+              <div class="cart-total-row">
+                <span>Items in cart</span>
+                <strong id="cart-count">0</strong>
+              </div>
+              <div class="cart-total-row">
+                <span>Total</span>
+                <strong id="cart-total">$0.00</strong>
+              </div>
+            </div>
+
+            <div id="cart-items" class="cart-items">
+              <p class="empty-state">Your cart is empty.</p>
+            </div>
+
+            <form id="checkout-form" class="checkout-form">
+              <label>
+                Saved address
+                <select id="saved-address-select" required>
+                  <option value="">Select saved address</option>
+                </select>
+              </label>
+              <p id="checkout-address-hint" class="muted-text">Add address first to place an order.</p>
+              <button id="place-order-button" class="primary-button" type="submit">Place order</button>
+            </form>
+            <p id="order-message" class="feedback"></p>
+          </aside>
+        </div>
+      </section>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

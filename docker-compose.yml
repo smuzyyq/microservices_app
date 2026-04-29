@@ -1,0 +1,194 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+    container_name: foodrush-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - auth-service
+      - product-service
+      - order-service
+      - user-service
+      - chat-service
+    env_file:
+      - .env
+    networks:
+      - foodrush-network
+
+  auth-service:
+    build:
+      context: ./services/auth
+    container_name: auth-service
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    networks:
+      - foodrush-network
+
+  product-service:
+    build:
+      context: ./services/product
+    container_name: product-service
+    ports:
+      - "8002:8002"
+    env_file:
+      - .env
+    depends_on:
+      product-db:
+        condition: service_healthy
+    networks:
+      - foodrush-network
+
+  order-service:
+    build:
+      context: ./services/order
+    container_name: order-service
+    ports:
+      - "8003:8003"
+    env_file:
+      - .env
+    depends_on:
+      order-db:
+        condition: service_healthy
+    networks:
+      - foodrush-network
+
+  user-service:
+    build:
+      context: ./services/user
+    container_name: user-service
+    ports:
+      - "8004:8004"
+    env_file:
+      - .env
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    networks:
+      - foodrush-network
+
+  chat-service:
+    build:
+      context: ./services/chat
+    container_name: chat-service
+    ports:
+      - "8005:8005"
+    env_file:
+      - .env
+    depends_on:
+      chat-db:
+        condition: service_healthy
+    networks:
+      - foodrush-network
+
+  auth-db:
+    image: postgres:15
+    container_name: auth-db
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d auth_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    networks:
+      - foodrush-network
+
+  product-db:
+    image: postgres:15
+    container_name: product-db
+    environment:
+      POSTGRES_DB: product_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d product_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - product-db-data:/var/lib/postgresql/data
+    networks:
+      - foodrush-network
+
+  order-db:
+    image: postgres:15
+    container_name: order-db
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d order_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - order-db-data:/var/lib/postgresql/data
+    networks:
+      - foodrush-network
+
+  chat-db:
+    image: postgres:15
+    container_name: chat-db
+    environment:
+      POSTGRES_DB: chat_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d chat_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - chat-db-data:/var/lib/postgresql/data
+    networks:
+      - foodrush-network
+
+  prometheus:
+    build:
+      context: ./monitoring/prometheus
+    container_name: foodrush-prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - auth-service
+      - product-service
+      - order-service
+      - user-service
+      - chat-service
+    networks:
+      - foodrush-network
+
+  grafana:
+    build:
+      context: ./monitoring/grafana
+    container_name: foodrush-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    depends_on:
+      - prometheus
+    networks:
+      - foodrush-network
+
+volumes:
+  auth-db-data:
+  product-db-data:
+  order-db-data:
+  chat-db-data:
+
+networks:
+  foodrush-network:
+    driver: bridge

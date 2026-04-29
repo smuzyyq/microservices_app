@@ -1,0 +1,6 @@
+project_name = "foodrush"
+environment  = "dev"
+project_id   = "project-3dfafb6b-6dcc-46c8-ac5"
+region       = "us-central1"
+zone         = "us-central1-a"
+machine_type = "e2-medium"
