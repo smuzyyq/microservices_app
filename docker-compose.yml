@@ -5,6 +5,7 @@ services:
     container_name: foodrush-frontend
     ports:
       - "80:80"
+    restart: unless-stopped
     depends_on:
       - auth-service
       - product-service
@@ -13,6 +14,12 @@ services:
       - chat-service
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     networks:
       - foodrush-network
 
@@ -22,11 +29,18 @@ services:
     container_name: auth-service
     ports:
       - "8001:8001"
+    restart: unless-stopped
     env_file:
       - .env
     depends_on:
       auth-db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8001/health >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     networks:
       - foodrush-network
 
@@ -36,11 +50,18 @@ services:
     container_name: product-service
     ports:
       - "8002:8002"
+    restart: unless-stopped
     env_file:
       - .env
     depends_on:
       product-db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8002/health >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     networks:
       - foodrush-network
 
@@ -50,11 +71,18 @@ services:
     container_name: order-service
     ports:
       - "8003:8003"
+    restart: unless-stopped
     env_file:
       - .env
     depends_on:
       order-db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8003/health >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     networks:
       - foodrush-network
 
@@ -64,11 +92,18 @@ services:
     container_name: user-service
     ports:
       - "8004:8004"
+    restart: unless-stopped
     env_file:
       - .env
     depends_on:
       auth-db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8004/health >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     networks:
       - foodrush-network
 
@@ -78,17 +113,25 @@ services:
     container_name: chat-service
     ports:
       - "8005:8005"
+    restart: unless-stopped
     env_file:
       - .env
     depends_on:
       chat-db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8005/health >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     networks:
       - foodrush-network
 
   auth-db:
     image: postgres:15
     container_name: auth-db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: auth_db
       POSTGRES_USER: ${POSTGRES_USER}
@@ -106,6 +149,7 @@ services:
   product-db:
     image: postgres:15
     container_name: product-db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: product_db
       POSTGRES_USER: ${POSTGRES_USER}
@@ -123,6 +167,7 @@ services:
   order-db:
     image: postgres:15
     container_name: order-db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: order_db
       POSTGRES_USER: ${POSTGRES_USER}
@@ -140,6 +185,7 @@ services:
   chat-db:
     image: postgres:15
     container_name: chat-db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: chat_db
       POSTGRES_USER: ${POSTGRES_USER}
@@ -160,12 +206,19 @@ services:
     container_name: foodrush-prometheus
     ports:
       - "9090:9090"
+    restart: unless-stopped
     depends_on:
       - auth-service
       - product-service
       - order-service
       - user-service
       - chat-service
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     networks:
       - foodrush-network
 
@@ -175,11 +228,18 @@ services:
     container_name: foodrush-grafana
     ports:
       - "3000:3000"
+    restart: unless-stopped
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
     depends_on:
       - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     networks:
       - foodrush-network
 

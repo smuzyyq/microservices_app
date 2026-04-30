@@ -19,3 +19,48 @@ groups:
         annotations:
           summary: "Order service database is disconnected"
           description: "Order service is reachable, but it has been running in degraded mode without database connectivity for more than 1 minute."
+      - alert: OrderServiceHighCPU
+        expr: rate(process_cpu_seconds_total{job="order-service"}[5m]) > 0.20
+        for: 2m
+        labels:
+          severity: warning
+          service: order-service
+        annotations:
+          summary: "Order service CPU usage is high"
+          description: "Order service CPU consumption has been above the configured threshold for more than 2 minutes."
+      - alert: OrderServiceHighErrorRate
+        expr: (rate(http_requests_total{job="order-service",status=~"5.."}[5m]) / clamp_min(rate(http_requests_total{job="order-service"}[5m]), 0.0001)) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          service: order-service
+        annotations:
+          summary: "Order service error rate is elevated"
+          description: "More than 5% of recent order-service requests returned 5xx responses for over 2 minutes."
+      - alert: ProductServiceDown
+        expr: up{job="product-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: product-service
+        annotations:
+          summary: "Product service is down"
+          description: "Prometheus has been unable to scrape product-service metrics for more than 1 minute."
+      - alert: ProductServiceHighCPU
+        expr: rate(process_cpu_seconds_total{job="product-service"}[5m]) > 0.20
+        for: 2m
+        labels:
+          severity: warning
+          service: product-service
+        annotations:
+          summary: "Product service CPU usage is high"
+          description: "Product service CPU consumption has been above the configured threshold for more than 2 minutes."
+      - alert: ProductServiceHighErrorRate
+        expr: (rate(http_requests_total{job="product-service",status=~"5.."}[5m]) / clamp_min(rate(http_requests_total{job="product-service"}[5m]), 0.0001)) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          service: product-service
+        annotations:
+          summary: "Product service error rate is elevated"
+          description: "More than 5% of recent product-service requests returned 5xx responses for over 2 minutes."
