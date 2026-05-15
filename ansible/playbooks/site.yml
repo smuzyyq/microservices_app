@@ -1,0 +1,7 @@
+---
+- name: Bootstrap and deploy FoodRush with Docker Compose
+  import_playbook: bootstrap_docker.yml
+
+- name: Deploy application stack
+  import_playbook: deploy_compose.yml
+

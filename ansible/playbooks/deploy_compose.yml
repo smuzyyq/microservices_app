@@ -1,0 +1,49 @@
+---
+- name: Deploy FoodRush with Docker Compose
+  hosts: app_servers
+  become: true
+  gather_facts: true
+
+  vars:
+    foodrush_local_project_dir: "{{ playbook_dir }}/../.."
+
+  tasks:
+    - name: Create remote project directory
+      ansible.builtin.file:
+        path: "{{ foodrush_project_root }}"
+        state: directory
+        mode: "0755"
+
+    - name: Copy project files to remote host
+      ansible.builtin.copy:
+        src: "{{ foodrush_local_project_dir }}/"
+        dest: "{{ foodrush_project_root }}/"
+        mode: preserve
+
+    - name: Render environment file
+      ansible.builtin.template:
+        src: ../templates/env.j2
+        dest: "{{ foodrush_project_root }}/.env"
+        mode: "0600"
+
+    - name: Validate environment configuration
+      ansible.builtin.command: ./scripts/validate_env.sh
+      args:
+        chdir: "{{ foodrush_project_root }}"
+
+    - name: Start FoodRush stack with Docker Compose
+      ansible.builtin.command: docker compose up -d --build
+      args:
+        chdir: "{{ foodrush_project_root }}"
+
+    - name: Show Compose service status
+      ansible.builtin.command: docker compose ps
+      args:
+        chdir: "{{ foodrush_project_root }}"
+      register: compose_ps
+      changed_when: false
+
+    - name: Print Compose service status
+      ansible.builtin.debug:
+        var: compose_ps.stdout_lines
+

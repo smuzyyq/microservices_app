@@ -1,0 +1,61 @@
+---
+- name: Deploy FoodRush with Docker Swarm
+  hosts: app_servers
+  become: true
+  gather_facts: true
+
+  vars:
+    foodrush_local_project_dir: "{{ playbook_dir }}/../.."
+
+  tasks:
+    - name: Create remote project directory
+      ansible.builtin.file:
+        path: "{{ foodrush_project_root }}"
+        state: directory
+        mode: "0755"
+
+    - name: Copy project files to remote host
+      ansible.builtin.copy:
+        src: "{{ foodrush_local_project_dir }}/"
+        dest: "{{ foodrush_project_root }}/"
+        mode: preserve
+
+    - name: Render environment file
+      ansible.builtin.template:
+        src: ../templates/env.j2
+        dest: "{{ foodrush_project_root }}/.env"
+        mode: "0600"
+
+    - name: Validate environment configuration
+      ansible.builtin.command: ./scripts/validate_env.sh
+      args:
+        chdir: "{{ foodrush_project_root }}"
+
+    - name: Build service images required by the Swarm stack
+      ansible.builtin.command: docker compose build
+      args:
+        chdir: "{{ foodrush_project_root }}"
+
+    - name: Read local Swarm state
+      ansible.builtin.command: docker info --format {{ "'{{.Swarm.LocalNodeState}}'" }}
+      register: swarm_state
+      changed_when: false
+
+    - name: Initialize Docker Swarm when inactive
+      ansible.builtin.command: docker swarm init
+      when: swarm_state.stdout != 'active'
+
+    - name: Deploy Swarm stack
+      ansible.builtin.command: docker stack deploy -c docker-stack.yml {{ foodrush_swarm_stack_name }}
+      args:
+        chdir: "{{ foodrush_project_root }}"
+
+    - name: Show Swarm service status
+      ansible.builtin.command: docker stack services {{ foodrush_swarm_stack_name }}
+      register: swarm_services
+      changed_when: false
+
+    - name: Print Swarm service status
+      ansible.builtin.debug:
+        var: swarm_services.stdout_lines
+
