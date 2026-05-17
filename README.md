@@ -96,18 +96,20 @@ cp .env.example .env
 Example configuration:
 
 ```env
-AUTH_DATABASE_URL=postgresql://foodrush:foodrush123@auth-db:5432/auth_db
-PRODUCT_DATABASE_URL=postgresql://foodrush:foodrush123@product-db:5432/product_db
-ORDER_DATABASE_URL=postgresql://foodrush:foodrush123@order-db:5432/order_db
-USER_DATABASE_URL=postgresql://foodrush:foodrush123@auth-db:5432/auth_db
-CHAT_DATABASE_URL=postgresql://foodrush:foodrush123@chat-db:5432/chat_db
-PAYMENT_DATABASE_URL=postgresql://foodrush:foodrush123@payment-db:5432/payment_db
-JWT_SECRET=foodrush-super-secret
+AUTH_DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@auth-db:5432/auth_db
+PRODUCT_DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@product-db:5432/product_db
+ORDER_DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@order-db:5432/order_db
+USER_DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@auth-db:5432/auth_db
+CHAT_DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@chat-db:5432/chat_db
+PAYMENT_DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@payment-db:5432/payment_db
+JWT_SECRET=<CHANGE_ME_JWT_SECRET>
 PRODUCT_SERVICE_URL=http://product-service:8002/products
 ORDER_SERVICE_URL=http://order-service:8003/orders
 PAYMENT_SERVICE_URL=http://payment-service:8006/payments
-POSTGRES_USER=foodrush
-POSTGRES_PASSWORD=foodrush123
+POSTGRES_USER=<DB_USER>
+POSTGRES_PASSWORD=<DB_PASSWORD>
+GF_SECURITY_ADMIN_USER=<GRAFANA_ADMIN_USER>
+GF_SECURITY_ADMIN_PASSWORD=<GRAFANA_ADMIN_PASSWORD>
 ```
 
 ## Local Setup
@@ -401,7 +403,7 @@ curl http://localhost/api/orders/health
 Break the database connection string in `.env`, for example:
 
 ```env
-ORDER_DATABASE_URL=postgresql://foodrush:wrongpass@order-db:5432/order_db
+ORDER_DATABASE_URL=postgresql://<DB_USER>:<WRONG_PASSWORD>@order-db:5432/order_db
 ```
 
 Restart the affected service:
