@@ -64,3 +64,12 @@ groups:
         annotations:
           summary: "Product service error rate is elevated"
           description: "More than 5% of recent product-service requests returned 5xx responses for over 2 minutes."
+      - alert: PaymentServiceDown
+        expr: up{job="payment-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: payment-service
+        annotations:
+          summary: "Payment service is down"
+          description: "Prometheus has been unable to scrape payment-service metrics for more than 1 minute."

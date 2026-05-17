@@ -9,7 +9,7 @@ class CreateOrderUseCase:
     def __init__(self, order_repo: IOrderRepository) -> None:
         self.order_repo = order_repo
 
-    def execute(self, user_id, restaurant_id, delivery_address: str, items: list[dict]) -> Order:
+    def build_order(self, user_id, restaurant_id, delivery_address: str, items: list[dict]) -> Order:
         created_at = datetime.utcnow()
         order_id = uuid4()
         order_items: list[OrderItem] = []
@@ -41,4 +41,8 @@ class CreateOrderUseCase:
             created_at=created_at,
             updated_at=created_at,
         )
+        return order
+
+    def execute(self, user_id, restaurant_id, delivery_address: str, items: list[dict]) -> Order:
+        order = self.build_order(user_id, restaurant_id, delivery_address, items)
         return self.order_repo.save(order)

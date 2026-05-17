@@ -1,61 +1,115 @@
 ---
 - name: Deploy FoodRush with Docker Swarm
   hosts: app_servers
-  become: true
   gather_facts: true
 
   vars:
     foodrush_local_project_dir: "{{ playbook_dir }}/../.."
+    foodrush_local_archive: "{{ foodrush_local_project_dir }}/.ansible/foodrush-deploy.tar.gz"
 
   tasks:
+    - name: Ensure local Ansible artifact directory exists
+      ansible.builtin.file:
+        path: "{{ foodrush_local_project_dir }}/.ansible"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+      become: false
+
+    - name: Build local deployment archive
+      ansible.builtin.archive:
+        path: "{{ foodrush_local_project_dir }}/"
+        dest: "{{ foodrush_local_archive }}"
+        format: gz
+        exclude_path:
+          - "{{ foodrush_local_project_dir }}/.git"
+          - "{{ foodrush_local_project_dir }}/.ansible"
+          - "{{ foodrush_local_project_dir }}/.pycache"
+      delegate_to: localhost
+      become: false
+
     - name: Create remote project directory
       ansible.builtin.file:
         path: "{{ foodrush_project_root }}"
         state: directory
         mode: "0755"
+      become: true
 
-    - name: Copy project files to remote host
+    - name: Remove previous remote project contents
+      ansible.builtin.file:
+        path: "{{ foodrush_project_root }}"
+        state: absent
+      become: true
+
+    - name: Recreate remote project directory
+      ansible.builtin.file:
+        path: "{{ foodrush_project_root }}"
+        state: directory
+        mode: "0755"
+      become: true
+
+    - name: Copy deployment archive to remote host
       ansible.builtin.copy:
-        src: "{{ foodrush_local_project_dir }}/"
-        dest: "{{ foodrush_project_root }}/"
-        mode: preserve
+        src: "{{ foodrush_local_archive }}"
+        dest: "{{ foodrush_project_root }}/foodrush-deploy.tar.gz"
+        mode: "0644"
+      become: true
+
+    - name: Extract deployment archive on remote host
+      ansible.builtin.unarchive:
+        src: "{{ foodrush_project_root }}/foodrush-deploy.tar.gz"
+        dest: "{{ foodrush_project_root }}"
+        remote_src: true
+      become: true
+
+    - name: Remove deployment archive from remote host
+      ansible.builtin.file:
+        path: "{{ foodrush_project_root }}/foodrush-deploy.tar.gz"
+        state: absent
+      become: true
 
     - name: Render environment file
       ansible.builtin.template:
         src: ../templates/env.j2
         dest: "{{ foodrush_project_root }}/.env"
         mode: "0600"
+      become: true
 
     - name: Validate environment configuration
       ansible.builtin.command: ./scripts/validate_env.sh
       args:
         chdir: "{{ foodrush_project_root }}"
+      become: true
 
     - name: Build service images required by the Swarm stack
       ansible.builtin.command: docker compose build
       args:
         chdir: "{{ foodrush_project_root }}"
+      become: true
 
     - name: Read local Swarm state
       ansible.builtin.command: docker info --format {{ "'{{.Swarm.LocalNodeState}}'" }}
       register: swarm_state
       changed_when: false
+      become: true
 
     - name: Initialize Docker Swarm when inactive
       ansible.builtin.command: docker swarm init
       when: swarm_state.stdout != 'active'
+      become: true
 
     - name: Deploy Swarm stack
       ansible.builtin.command: docker stack deploy -c docker-stack.yml {{ foodrush_swarm_stack_name }}
       args:
         chdir: "{{ foodrush_project_root }}"
+      become: true
 
     - name: Show Swarm service status
       ansible.builtin.command: docker stack services {{ foodrush_swarm_stack_name }}
       register: swarm_services
       changed_when: false
+      become: true
 
     - name: Print Swarm service status
       ansible.builtin.debug:
         var: swarm_services.stdout_lines
-

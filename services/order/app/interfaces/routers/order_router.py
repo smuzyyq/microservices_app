@@ -124,6 +124,14 @@ def _to_order_response(order: Order) -> OrderResponse:
     )
 
 
+def _with_payment(order: Order, payment: dict | None) -> OrderResponse:
+    response = _to_order_response(order)
+    if payment:
+        response.payment_id = UUID(str(payment["id"]))
+        response.payment_status = payment["status"]
+    return response
+
+
 def _raise_http_error(error: Exception) -> None:
     if isinstance(error, OrderNotFoundError):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
@@ -136,9 +144,57 @@ def _raise_http_error(error: Exception) -> None:
     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected order error.") from error
 
 
+async def _create_payment(order: Order, authorization: str) -> dict:
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.post(
+                settings.payment_service_url,
+                headers={"Authorization": authorization},
+                json={
+                    "order_id": str(order.id),
+                    "amount": order.total_price,
+                    "currency": "KZT",
+                    "method": "card",
+                },
+            )
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Payment service is unavailable.",
+        ) from exc
+
+    if response.status_code != status.HTTP_201_CREATED:
+        detail = "Payment could not be processed for this order."
+        try:
+            payload = response.json()
+            detail = payload.get("detail", detail)
+        except ValueError:
+            pass
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail)
+    return response.json()
+
+
+async def _fetch_payment(order_id: UUID, authorization: str) -> dict | None:
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(
+                f"{settings.payment_service_url}/order/{order_id}",
+                headers={"Authorization": authorization},
+            )
+    except httpx.HTTPError:
+        return None
+
+    if response.status_code == status.HTTP_404_NOT_FOUND:
+        return None
+    if response.status_code != status.HTTP_200_OK:
+        return None
+    return response.json()
+
+
 @router.post("", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
 async def create_order(
     payload: OrderCreate,
+    authorization: str = Header(..., alias="Authorization"),
     auth_payload: dict = Depends(verify_jwt),
     order_repo: IOrderRepository = Depends(get_order_repository),
 ) -> OrderResponse:
@@ -147,19 +203,23 @@ async def create_order(
             restaurant_id=payload.restaurant_id,
             items=[item.model_dump() for item in payload.items],
         )
-        order = CreateOrderUseCase(order_repo).execute(
+        create_order_use_case = CreateOrderUseCase(order_repo)
+        order_draft = create_order_use_case.build_order(
             user_id=UUID(str(auth_payload["user_id"])),
             restaurant_id=payload.restaurant_id,
             delivery_address=payload.delivery_address,
             items=validated_items,
         )
+        payment = await _create_payment(order_draft, authorization)
+        order = order_repo.save(order_draft)
     except (DatabaseConnectionError,) as exc:
         _raise_http_error(exc)
-    return _to_order_response(order)
+    return _with_payment(order, payment)
 
 
 @router.get("", response_model=list[OrderResponse])
-def list_user_orders(
+async def list_user_orders(
+    authorization: str = Header(..., alias="Authorization"),
     auth_payload: dict = Depends(verify_jwt),
     order_repo: IOrderRepository = Depends(get_order_repository),
 ) -> list[OrderResponse]:
@@ -167,12 +227,13 @@ def list_user_orders(
         orders = order_repo.find_by_user(UUID(str(auth_payload["user_id"])))
     except DatabaseConnectionError as exc:
         _raise_http_error(exc)
-    return [_to_order_response(order) for order in orders]
+    return [_with_payment(order, await _fetch_payment(order.id, authorization)) for order in orders]
 
 
 @router.get("/restaurant/{restaurant_id}", response_model=list[OrderResponse])
-def list_restaurant_orders(
+async def list_restaurant_orders(
     restaurant_id: UUID,
+    authorization: str = Header(..., alias="Authorization"),
     auth_payload: dict = Depends(verify_jwt),
     order_repo: IOrderRepository = Depends(get_order_repository),
 ) -> list[OrderResponse]:
@@ -182,12 +243,13 @@ def list_restaurant_orders(
         orders = order_repo.find_by_restaurant(restaurant_id)
     except DatabaseConnectionError as exc:
         _raise_http_error(exc)
-    return [_to_order_response(order) for order in orders]
+    return [_with_payment(order, await _fetch_payment(order.id, authorization)) for order in orders]
 
 
 @router.get("/{order_id}", response_model=OrderResponse)
-def get_order(
+async def get_order(
     order_id: UUID,
+    authorization: str = Header(..., alias="Authorization"),
     auth_payload: dict = Depends(verify_jwt),
     order_repo: IOrderRepository = Depends(get_order_repository),
 ) -> OrderResponse:
@@ -201,7 +263,7 @@ def get_order(
             order = GetOrderUseCase(order_repo).execute(order_id, UUID(str(auth_payload["user_id"])))
     except (OrderNotFoundError, UnauthorizedError, DatabaseConnectionError) as exc:
         _raise_http_error(exc)
-    return _to_order_response(order)
+    return _with_payment(order, await _fetch_payment(order.id, authorization))
 
 
 @router.patch("/{order_id}/status", response_model=OrderResponse)

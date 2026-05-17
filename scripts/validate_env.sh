@@ -19,9 +19,11 @@ required_vars=(
   ORDER_DATABASE_URL
   USER_DATABASE_URL
   CHAT_DATABASE_URL
+  PAYMENT_DATABASE_URL
   JWT_SECRET
   PRODUCT_SERVICE_URL
   ORDER_SERVICE_URL
+  PAYMENT_SERVICE_URL
   POSTGRES_USER
   POSTGRES_PASSWORD
 )
@@ -59,14 +61,17 @@ check_prefix "PRODUCT_DATABASE_URL" "postgresql://"
 check_prefix "ORDER_DATABASE_URL" "postgresql://"
 check_prefix "USER_DATABASE_URL" "postgresql://"
 check_prefix "CHAT_DATABASE_URL" "postgresql://"
+check_prefix "PAYMENT_DATABASE_URL" "postgresql://"
 check_prefix "PRODUCT_SERVICE_URL" "http://"
 check_prefix "ORDER_SERVICE_URL" "http://"
+check_prefix "PAYMENT_SERVICE_URL" "http://"
 
 check_contains "AUTH_DATABASE_URL" "@auth-db:5432/"
 check_contains "PRODUCT_DATABASE_URL" "@product-db:5432/"
 check_contains "ORDER_DATABASE_URL" "@order-db:5432/"
 check_contains "USER_DATABASE_URL" "@auth-db:5432/"
 check_contains "CHAT_DATABASE_URL" "@chat-db:5432/"
+check_contains "PAYMENT_DATABASE_URL" "@payment-db:5432/"
 
 if [[ ${missing} -ne 0 ]]; then
   echo "Environment validation failed."

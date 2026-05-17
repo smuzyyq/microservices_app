@@ -1,0 +1,255 @@
+services:
+  frontend:
+    image: foodrush-frontend:latest
+    ports:
+      - "8080:80"
+    networks:
+      - foodrush-overlay
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+
+  auth-service:
+    image: foodrush-auth-service:latest
+    environment:
+      AUTH_DATABASE_URL: postgresql://foodrush:foodrush123@auth-db:5432/auth_db
+      PRODUCT_DATABASE_URL: postgresql://foodrush:foodrush123@product-db:5432/product_db
+      ORDER_DATABASE_URL: postgresql://foodrush:foodrush123@order-db:5432/order_db
+      USER_DATABASE_URL: postgresql://foodrush:foodrush123@auth-db:5432/auth_db
+      CHAT_DATABASE_URL: postgresql://foodrush:foodrush123@chat-db:5432/chat_db
+      PAYMENT_DATABASE_URL: postgresql://foodrush:foodrush123@payment-db:5432/payment_db
+      PRODUCT_SERVICE_URL: http://product-service:8002/products
+      ORDER_SERVICE_URL: http://order-service:8003/orders
+      PAYMENT_SERVICE_URL: http://payment-service:8006/payments
+      JWT_SECRET: foodrush-super-secret
+      POSTGRES_USER: foodrush
+      POSTGRES_PASSWORD: foodrush123
+    networks:
+      - foodrush-overlay
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+
+  product-service:
+    image: foodrush-product-service:latest
+    environment:
+      AUTH_DATABASE_URL: postgresql://foodrush:foodrush123@auth-db:5432/auth_db
+      PRODUCT_DATABASE_URL: postgresql://foodrush:foodrush123@product-db:5432/product_db
+      ORDER_DATABASE_URL: postgresql://foodrush:foodrush123@order-db:5432/order_db
+      USER_DATABASE_URL: postgresql://foodrush:foodrush123@auth-db:5432/auth_db
+      CHAT_DATABASE_URL: postgresql://foodrush:foodrush123@chat-db:5432/chat_db
+      PAYMENT_DATABASE_URL: postgresql://foodrush:foodrush123@payment-db:5432/payment_db
+      PRODUCT_SERVICE_URL: http://product-service:8002/products
+      ORDER_SERVICE_URL: http://order-service:8003/orders
+      PAYMENT_SERVICE_URL: http://payment-service:8006/payments
+      JWT_SECRET: foodrush-super-secret
+      POSTGRES_USER: foodrush
+      POSTGRES_PASSWORD: foodrush123
+    networks:
+      - foodrush-overlay
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+
+  order-service:
+    image: foodrush-order-service:latest
+    environment:
+      AUTH_DATABASE_URL: postgresql://foodrush:foodrush123@auth-db:5432/auth_db
+      PRODUCT_DATABASE_URL: postgresql://foodrush:foodrush123@product-db:5432/product_db
+      ORDER_DATABASE_URL: postgresql://foodrush:foodrush123@order-db:5432/order_db
+      USER_DATABASE_URL: postgresql://foodrush:foodrush123@auth-db:5432/auth_db
+      CHAT_DATABASE_URL: postgresql://foodrush:foodrush123@chat-db:5432/chat_db
+      PAYMENT_DATABASE_URL: postgresql://foodrush:foodrush123@payment-db:5432/payment_db
+      PRODUCT_SERVICE_URL: http://product-service:8002/products
+      ORDER_SERVICE_URL: http://order-service:8003/orders
+      PAYMENT_SERVICE_URL: http://payment-service:8006/payments
+      JWT_SECRET: foodrush-super-secret
+      POSTGRES_USER: foodrush
+      POSTGRES_PASSWORD: foodrush123
+    networks:
+      - foodrush-overlay
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+
+  user-service:
+    image: foodrush-user-service:latest
+    environment:
+      AUTH_DATABASE_URL: postgresql://foodrush:foodrush123@auth-db:5432/auth_db
+      PRODUCT_DATABASE_URL: postgresql://foodrush:foodrush123@product-db:5432/product_db
+      ORDER_DATABASE_URL: postgresql://foodrush:foodrush123@order-db:5432/order_db
+      USER_DATABASE_URL: postgresql://foodrush:foodrush123@auth-db:5432/auth_db
+      CHAT_DATABASE_URL: postgresql://foodrush:foodrush123@chat-db:5432/chat_db
+      PAYMENT_DATABASE_URL: postgresql://foodrush:foodrush123@payment-db:5432/payment_db
+      PRODUCT_SERVICE_URL: http://product-service:8002/products
+      ORDER_SERVICE_URL: http://order-service:8003/orders
+      PAYMENT_SERVICE_URL: http://payment-service:8006/payments
+      JWT_SECRET: foodrush-super-secret
+      POSTGRES_USER: foodrush
+      POSTGRES_PASSWORD: foodrush123
+    networks:
+      - foodrush-overlay
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+
+  chat-service:
+    image: foodrush-chat-service:latest
+    environment:
+      AUTH_DATABASE_URL: postgresql://foodrush:foodrush123@auth-db:5432/auth_db
+      PRODUCT_DATABASE_URL: postgresql://foodrush:foodrush123@product-db:5432/product_db
+      ORDER_DATABASE_URL: postgresql://foodrush:foodrush123@order-db:5432/order_db
+      USER_DATABASE_URL: postgresql://foodrush:foodrush123@auth-db:5432/auth_db
+      CHAT_DATABASE_URL: postgresql://foodrush:foodrush123@chat-db:5432/chat_db
+      PAYMENT_DATABASE_URL: postgresql://foodrush:foodrush123@payment-db:5432/payment_db
+      PRODUCT_SERVICE_URL: http://product-service:8002/products
+      ORDER_SERVICE_URL: http://order-service:8003/orders
+      PAYMENT_SERVICE_URL: http://payment-service:8006/payments
+      JWT_SECRET: foodrush-super-secret
+      POSTGRES_USER: foodrush
+      POSTGRES_PASSWORD: foodrush123
+    networks:
+      - foodrush-overlay
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+
+  payment-service:
+    image: foodrush-payment-service:latest
+    environment:
+      AUTH_DATABASE_URL: postgresql://foodrush:foodrush123@auth-db:5432/auth_db
+      PRODUCT_DATABASE_URL: postgresql://foodrush:foodrush123@product-db:5432/product_db
+      ORDER_DATABASE_URL: postgresql://foodrush:foodrush123@order-db:5432/order_db
+      USER_DATABASE_URL: postgresql://foodrush:foodrush123@auth-db:5432/auth_db
+      CHAT_DATABASE_URL: postgresql://foodrush:foodrush123@chat-db:5432/chat_db
+      PAYMENT_DATABASE_URL: postgresql://foodrush:foodrush123@payment-db:5432/payment_db
+      PRODUCT_SERVICE_URL: http://product-service:8002/products
+      ORDER_SERVICE_URL: http://order-service:8003/orders
+      PAYMENT_SERVICE_URL: http://payment-service:8006/payments
+      JWT_SECRET: foodrush-super-secret
+      POSTGRES_USER: foodrush
+      POSTGRES_PASSWORD: foodrush123
+    networks:
+      - foodrush-overlay
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  auth-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: foodrush
+      POSTGRES_PASSWORD: foodrush123
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    networks:
+      - foodrush-overlay
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  product-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: product_db
+      POSTGRES_USER: foodrush
+      POSTGRES_PASSWORD: foodrush123
+    volumes:
+      - product-db-data:/var/lib/postgresql/data
+    networks:
+      - foodrush-overlay
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  order-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: foodrush
+      POSTGRES_PASSWORD: foodrush123
+    volumes:
+      - order-db-data:/var/lib/postgresql/data
+    networks:
+      - foodrush-overlay
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  chat-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: chat_db
+      POSTGRES_USER: foodrush
+      POSTGRES_PASSWORD: foodrush123
+    volumes:
+      - chat-db-data:/var/lib/postgresql/data
+    networks:
+      - foodrush-overlay
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  payment-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: payment_db
+      POSTGRES_USER: foodrush
+      POSTGRES_PASSWORD: foodrush123
+    volumes:
+      - payment-db-data:/var/lib/postgresql/data
+    networks:
+      - foodrush-overlay
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  prometheus:
+    image: foodrush-prometheus:latest
+    ports:
+      - "9190:9090"
+    networks:
+      - foodrush-overlay
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+
+  grafana:
+    image: foodrush-grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports:
+      - "3300:3000"
+    networks:
+      - foodrush-overlay
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+
+volumes:
+  auth-db-data:
+  product-db-data:
+  order-db-data:
+  chat-db-data:
+  payment-db-data:
+
+networks:
+  foodrush-overlay:
+    driver: overlay
+    attachable: true

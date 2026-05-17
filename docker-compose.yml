@@ -12,10 +12,11 @@ services:
       - order-service
       - user-service
       - chat-service
+      - payment-service
     env_file:
       - .env
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost/ >/dev/null 2>&1 || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost/ >/dev/null || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -36,7 +37,13 @@ services:
       auth-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8001/health >/dev/null 2>&1 || exit 1"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -57,7 +64,13 @@ services:
       product-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8002/health >/dev/null 2>&1 || exit 1"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8002/health')",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -78,7 +91,13 @@ services:
       order-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8003/health >/dev/null 2>&1 || exit 1"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8003/health')",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -99,7 +118,13 @@ services:
       auth-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8004/health >/dev/null 2>&1 || exit 1"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8004/health')",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -120,7 +145,40 @@ services:
       chat-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8005/health >/dev/null 2>&1 || exit 1"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8005/health')",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - foodrush-network
+
+  payment-service:
+    build:
+      context: ./services/payment
+    container_name: payment-service
+    ports:
+      - "8006:8006"
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      payment-db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8006/health')",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -200,6 +258,24 @@ services:
     networks:
       - foodrush-network
 
+  payment-db:
+    image: postgres:15
+    container_name: payment-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: payment_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d payment_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - payment-db-data:/var/lib/postgresql/data
+    networks:
+      - foodrush-network
+
   prometheus:
     build:
       context: ./monitoring/prometheus
@@ -213,6 +289,7 @@ services:
       - order-service
       - user-service
       - chat-service
+      - payment-service
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy >/dev/null 2>&1 || exit 1"]
       interval: 30s
@@ -248,6 +325,7 @@ volumes:
   product-db-data:
   order-db-data:
   chat-db-data:
+  payment-db-data:
 
 networks:
   foodrush-network:

@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: foodrush
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secret.yaml
+  - auth-db.yaml
+  - product-db.yaml
+  - chat-db.yaml
+  - payment-db.yaml
+  - order-db.yaml
+  - auth-service.yaml
+  - product-service.yaml
+  - payment-service.yaml
+  - order-service.yaml
+  - user-service.yaml
+  - chat-service.yaml
+  - frontend.yaml
+  - prometheus.yaml
+  - grafana.yaml

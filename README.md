@@ -1,9 +1,10 @@
 # FoodRush
 
-FoodRush is a cloud-deployed food delivery platform built with a microservices architecture. The project was created for Assignment 4 and Assignment 5 and demonstrates:
+FoodRush is a cloud-deployed food delivery platform built with a microservices architecture. The project was extended across the SRE assignment series and demonstrates:
 
 - microservices implementation
 - containerized deployment with Docker Compose
+- orchestration with Docker Swarm and Kubernetes
 - infrastructure provisioning with Terraform
 - monitoring with Prometheus and Grafana
 - incident simulation and postmortem analysis
@@ -29,6 +30,7 @@ This repository includes all required deliverables:
 - `order-service` on `8003`
 - `user-service` on `8004`
 - `chat-service` on `8005`
+- `payment-service` on `8006`
 - `frontend` on `80`
 
 ### Monitoring Services
@@ -42,6 +44,7 @@ This repository includes all required deliverables:
 - `product-db`
 - `order-db`
 - `chat-db`
+- `payment-db`
 
 ## Architecture
 
@@ -98,9 +101,11 @@ PRODUCT_DATABASE_URL=postgresql://foodrush:foodrush123@product-db:5432/product_d
 ORDER_DATABASE_URL=postgresql://foodrush:foodrush123@order-db:5432/order_db
 USER_DATABASE_URL=postgresql://foodrush:foodrush123@auth-db:5432/auth_db
 CHAT_DATABASE_URL=postgresql://foodrush:foodrush123@chat-db:5432/chat_db
+PAYMENT_DATABASE_URL=postgresql://foodrush:foodrush123@payment-db:5432/payment_db
 JWT_SECRET=foodrush-super-secret
 PRODUCT_SERVICE_URL=http://product-service:8002/products
 ORDER_SERVICE_URL=http://order-service:8003/orders
+PAYMENT_SERVICE_URL=http://payment-service:8006/payments
 POSTGRES_USER=foodrush
 POSTGRES_PASSWORD=foodrush123
 ```
@@ -133,6 +138,7 @@ curl http://localhost/api/products/health
 curl http://localhost/api/orders/health
 curl http://localhost/api/users/health
 curl http://localhost/api/chat/health
+curl http://localhost/api/payments/health
 ```
 
 ## Demo Accounts
@@ -170,6 +176,85 @@ docker compose logs -f
 docker compose down
 ```
 
+## Docker Swarm Deployment
+
+The project also includes a Swarm-oriented stack file for orchestration on a Docker Swarm manager node.
+
+### Swarm Files
+
+- `docker-stack.yml`
+- `scripts/swarm_deploy.sh`
+- `scripts/swarm_remove.sh`
+
+### Swarm Commands
+
+```bash
+./scripts/swarm_deploy.sh
+docker service ls
+docker stack services foodrushswarm
+docker stack ps foodrushswarm
+```
+
+Published ports in Swarm mode:
+
+- Frontend: [http://localhost:8080](http://localhost:8080)
+- Grafana: [http://localhost:3300](http://localhost:3300)
+- Prometheus: [http://localhost:9190](http://localhost:9190)
+
+To remove the Swarm stack:
+
+```bash
+./scripts/swarm_remove.sh
+```
+
+The Swarm configuration uses an overlay network, replicated application services, persistent PostgreSQL volumes, and restart policies suitable for single-manager demonstration deployments.
+
+## Kubernetes Deployment
+
+Kubernetes manifests are provided under `k8s/` and can be applied with:
+
+```bash
+kubectl apply -k k8s
+kubectl get pods -n foodrush
+kubectl get svc -n foodrush
+kubectl get deployments,statefulsets -n foodrush
+```
+
+## Ansible Automation
+
+Ansible playbooks are provided under `ansible/` to automate host preparation and application deployment.
+
+### Ansible Structure
+
+- `ansible/ansible.cfg`
+- `ansible/inventory/hosts.ini`
+- `ansible/group_vars/all.yml`
+- `ansible/playbooks/bootstrap_docker.yml`
+- `ansible/playbooks/deploy_compose.yml`
+- `ansible/playbooks/deploy_swarm.yml`
+- `ansible/playbooks/site.yml`
+
+### Prepare Inventory
+
+Edit `ansible/inventory/hosts.ini` with the target VM IP address and SSH user.
+
+### Run Compose Deployment
+
+```bash
+cd ansible
+ansible-playbook playbooks/site.yml
+```
+
+### Run Swarm Deployment
+
+```bash
+cd ansible
+ansible-playbook playbooks/bootstrap_docker.yml
+ansible-playbook playbooks/deploy_swarm.yml
+```
+
+The Ansible workflow installs Docker, copies the project to the target host, renders `.env`, validates configuration, and deploys the application using either Docker Compose or Docker Swarm.
+
 ## Monitoring
 
 ### Prometheus
@@ -181,6 +266,7 @@ Prometheus scrapes `/metrics` from:
 - `order-service`
 - `user-service`
 - `chat-service`
+- `payment-service`
 
 ### Grafana Dashboard
 
@@ -196,12 +282,16 @@ The Grafana dashboard includes:
 
 ### Alerts
 
-Two Prometheus alerts are configured for `order-service`:
+Prometheus alert rules cover outage, degraded-state, and load-related conditions, including:
 
 - `OrderServiceDown`
 - `OrderServiceDatabaseDisconnected`
-
-The first detects complete service outage. The second detects degraded state when `order-service` is still reachable but has lost database connectivity.
+- `OrderServiceHighCPU`
+- `OrderServiceHighErrorRate`
+- `PaymentServiceDown`
+- `ProductServiceDown`
+- `ProductServiceHighCPU`
+- `ProductServiceHighErrorRate`
 
 ## Terraform Deployment
 
@@ -346,7 +436,9 @@ curl http://localhost/api/orders/health
 
 ```text
 foodrush/
+├── ansible/
 ├── frontend/
+├── k8s/
 ├── monitoring/
 │   ├── grafana/
 │   └── prometheus/
@@ -354,10 +446,12 @@ foodrush/
 │   ├── auth/
 │   ├── chat/
 │   ├── order/
+│   ├── payment/
 │   ├── product/
 │   └── user/
 ├── terraform/
 ├── docker-compose.yml
+├── docker-stack.yml
 ├── .env.example
 └── README.md
 ```
@@ -392,4 +486,3 @@ This repository matches the assignment deliverables as follows:
   - Terraform implementation and explanation in the final report
 - Supporting Evidence:
   - screenshots collected separately for the final PDF report
-

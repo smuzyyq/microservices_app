@@ -4,12 +4,14 @@ const API = {
   orders: "/api/orders/orders",
   users: "/api/users/users",
   chat: "/api/chat/chat",
+  payments: "/api/payments/payments",
   health: {
     auth: "/api/auth/health",
     product: "/api/products/health",
     order: "/api/orders/health",
     user: "/api/users/health",
     chat: "/api/chat/health",
+    payment: "/api/payments/health",
   },
 };
 
@@ -355,6 +357,7 @@ function renderHealthStatuses(results = {}) {
     { key: "order", label: "Order" },
     { key: "user", label: "User" },
     { key: "chat", label: "Chat" },
+    { key: "payment", label: "Payment" },
   ];
 
   elements.healthStatuses.innerHTML = services
@@ -591,6 +594,7 @@ function renderOrders() {
             </div>
             <span class="status-badge status-${order.status}">${escapeHtml(order.status)}</span>
           </div>
+          ${order.payment_status ? `<p><strong>Payment:</strong> ${escapeHtml(order.payment_status)}</p>` : ""}
           <p><strong>Delivery address:</strong> ${escapeHtml(order.delivery_address)}</p>
           <p><strong>Created:</strong> ${escapeHtml(formatDate(order.created_at))}</p>
           <div class="item-list">
@@ -656,6 +660,7 @@ function renderDeliveryOrders() {
             </div>
             <span class="status-badge status-${order.status}">${escapeHtml(order.status)}</span>
           </div>
+          ${order.payment_status ? `<p><strong>Payment:</strong> ${escapeHtml(order.payment_status)}</p>` : ""}
           <p><strong>Drop-off:</strong> ${escapeHtml(order.delivery_address)}</p>
           <p><strong>Total:</strong> ${formatMoney(order.total_price)}</p>
           <div class="item-list">
@@ -1224,7 +1229,7 @@ async function handlePlaceOrder(event) {
     renderCart();
     await Promise.all([loadOrders(), loadMyRooms()]);
     switchView("orders");
-    setMessage(elements.orderMessage, "Order placed successfully.");
+    setMessage(elements.orderMessage, "Payment approved and order placed successfully.");
   } catch (error) {
     setMessage(elements.orderMessage, error.message, true);
   }

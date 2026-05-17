@@ -1,7 +1,6 @@
 ---
 - name: Prepare FoodRush host with Docker
   hosts: app_servers
-  become: true
   gather_facts: true
 
   tasks:
@@ -9,23 +8,27 @@
       ansible.builtin.apt:
         update_cache: true
         cache_valid_time: 3600
+      become: true
 
     - name: Install deployment prerequisites
       ansible.builtin.apt:
         name: "{{ docker_apt_packages }}"
         state: present
+      become: true
 
     - name: Ensure Docker apt keyring directory exists
       ansible.builtin.file:
         path: /etc/apt/keyrings
         state: directory
         mode: "0755"
+      become: true
 
     - name: Download Docker apt signing key
       ansible.builtin.get_url:
         url: https://download.docker.com/linux/debian/gpg
         dest: /etc/apt/keyrings/docker.asc
         mode: "0644"
+      become: true
 
     - name: Add Docker apt repository
       ansible.builtin.apt_repository:
@@ -36,18 +39,21 @@
           {{ ansible_distribution_release }} stable
         filename: docker
         state: present
+      become: true
 
     - name: Install Docker Engine and Compose plugin
       ansible.builtin.apt:
         name: "{{ docker_ce_packages }}"
         state: present
         update_cache: true
+      become: true
 
     - name: Ensure Docker service is enabled and started
       ansible.builtin.service:
         name: docker
         state: started
         enabled: true
+      become: true
 
     - name: Add remote login user to docker group
       ansible.builtin.user:
@@ -57,3 +63,4 @@
       when:
         - ansible_user is defined
         - ansible_user != 'root'
+      become: true

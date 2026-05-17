@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: foodrush
+spec:
+  selector:
+    app: user-service
+  ports:
+    - port: 8004
+      targetPort: 8004
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: foodrush
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      initContainers:
+        - name: wait-for-auth-db
+          image: postgres:15
+          command: ["sh", "-c", "until pg_isready -h auth-db -p 5432 -U \"$POSTGRES_USER\" -d auth_db; do sleep 2; done"]
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: foodrush-secret
+                  key: POSTGRES_USER
+      containers:
+        - name: user-service
+          image: foodrush-user-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8004
+          envFrom:
+            - configMapRef:
+                name: foodrush-config
+            - secretRef:
+                name: foodrush-secret
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 20
+            periodSeconds: 15

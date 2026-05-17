@@ -35,6 +35,8 @@ class OrderResponse(BaseModel):
     status: OrderStatus
     total_price: float
     delivery_address: str
+    payment_id: UUID | None = None
+    payment_status: str | None = None
     items: list[OrderItemResponse]
     created_at: datetime
     updated_at: datetime

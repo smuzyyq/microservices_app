@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     order_database_url: str
     auth_verify_url: str = "http://auth-service:8001/auth/verify"
     product_service_url: str = "http://product-service:8002/products"
+    payment_service_url: str = "http://payment-service:8006/payments"
     service_name: str = "order"
 
     model_config = SettingsConfigDict(
